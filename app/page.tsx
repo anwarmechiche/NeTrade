@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react' // Ajout de useEffect
 import { useRouter } from 'next/navigation'
 import { db } from '@/utils/supabase/client'
 import { saveSession } from '@/lib/auth-helpers'
-import { PushNotifications } from '@capacitor/push-notifications' // Import du plugin
+
 
 // Composant Button style "Supabase"
 function Button({ children, onClick, disabled, type = 'button', variant = 'primary' }: any) {
