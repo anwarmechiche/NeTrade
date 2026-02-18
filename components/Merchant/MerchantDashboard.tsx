@@ -142,35 +142,41 @@ export default function MerchantDashboard({ merchantId, user }: MerchantDashboar
   }
 
   const handleProductSubmit = async (productData: any) => {
-  console.log("1. Début soumission. Image présente ?", !!productData.image);
+  // 1. Vérifier si on a bien un marchand chargé (on utilise merchantId ou l'objet merchant)
+  if (!merchantId) {
+    alert("Erreur : Aucun marchand identifié. Veuillez vous reconnecter.");
+    return;
+  }
+
+  console.log("1. Début soumission pour le fournisseur ID:", merchantId);
   
   try {
-    // PREPARATION DES DONNÉES (Mapping exact avec ta BDD)
     const payload = {
       name: productData.name,
       price: parseFloat(productData.price) || 0,
       description: productData.description || "",
       active: productData.active ?? true,
-      image: productData.image, // Assure-toi que c'est 'image' et pas 'image_data'
-      merchant_id: 8 // On voit dans tes logs que c'est l'ID 8
+      image: productData.image, 
+      // ✅ Correction ici : on utilise la variable dynamique merchantId
+      merchant_id: merchantId 
     };
 
     console.log("2. Payload envoyé à Supabase:", payload);
 
-    // APPEL DB
     const result = await db.createProduct(payload);
 
     if (result) {
       console.log("3. ✅ Succès stockage dans la BDD:", result);
       setProductModalOpen(false);
+      // On réinitialise le produit sélectionné au cas où c'était une édition
+      setSelectedProduct?.(null); 
       await loadData(); 
     } else {
-      console.error("3. ❌ Le résultat est vide, le produit n'a pas été créé.");
+      console.error("3. ❌ Le résultat est vide.");
     }
   } catch (error: any) {
-    // C'EST ICI QUE TU VERRAS LA VRAIE ERREUR (400, RLS, ou Clé API)
-    console.error("3. ❌ ERREUR CRITIQUE lors de l'insertion:", error);
-    alert(`Erreur de stockage: ${error.message || "Vérifiez la console"}`);
+    console.error("3. ❌ ERREUR CRITIQUE:", error);
+    alert(`Erreur de stockage: ${error.message}`);
   }
 };
   // Fonctions pour les clients
