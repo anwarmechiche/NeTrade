@@ -141,40 +141,38 @@ export default function MerchantDashboard({ merchantId, user }: MerchantDashboar
     }
   }
 
-  const handleProductSubmit = async (productData: Partial<Product>) => {
-    try {
-      let result: Product | null = null
-      if (selectedProduct) {
-        // Mise à jour
-        result = await db.updateProduct(selectedProduct.id, productData)
-        if (result) {
-          alert('Produit mis à jour avec succès')
-        }
-      } else {
-        // Création
-        result = await db.createProduct({
-          ...productData,
-          merchant_id: merchantId
-        } as any)
-        if (result) {
-          alert('Produit créé avec succès')
-        }
-      }
-      
-      if (result) {
-        setProductModalOpen(false)
-        setSelectedProduct(null)
-        await loadData() // Recharger les données
-      } else {
-        alert('Erreur lors de l\'enregistrement du produit')
-      }
-    } catch (error) {
-      console.error('Error saving product:', error)
-      alert('Erreur lors de l\'enregistrement du produit')
-      throw error
-    }
-  }
+  const handleProductSubmit = async (productData: any) => {
+  console.log("1. Début soumission. Image présente ?", !!productData.image);
+  
+  try {
+    // PREPARATION DES DONNÉES (Mapping exact avec ta BDD)
+    const payload = {
+      name: productData.name,
+      price: parseFloat(productData.price) || 0,
+      description: productData.description || "",
+      active: productData.active ?? true,
+      image: productData.image, // Assure-toi que c'est 'image' et pas 'image_data'
+      merchant_id: 8 // On voit dans tes logs que c'est l'ID 8
+    };
 
+    console.log("2. Payload envoyé à Supabase:", payload);
+
+    // APPEL DB
+    const result = await db.createProduct(payload);
+
+    if (result) {
+      console.log("3. ✅ Succès stockage dans la BDD:", result);
+      setProductModalOpen(false);
+      await loadData(); 
+    } else {
+      console.error("3. ❌ Le résultat est vide, le produit n'a pas été créé.");
+    }
+  } catch (error: any) {
+    // C'EST ICI QUE TU VERRAS LA VRAIE ERREUR (400, RLS, ou Clé API)
+    console.error("3. ❌ ERREUR CRITIQUE lors de l'insertion:", error);
+    alert(`Erreur de stockage: ${error.message || "Vérifiez la console"}`);
+  }
+};
   // Fonctions pour les clients
   const handleViewClient = async (clientId: string) => {
     try {
